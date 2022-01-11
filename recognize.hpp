@@ -157,10 +157,16 @@ public:
             = resource.get<dict>("stage_index")[stage_code]["drops"];
         const auto& item_templs
             = resource.get<std::map<std::string, cv::Mat>>("item_templs");
-        for (const auto& [_, itemId] : stage_drop.items()) {
-            auto it = item_templs.find((itemId));
-            auto& templimg = item_templs.at(itemId);
-            _templ_list.emplace_back(itemId, templimg);
+        if (stage_drop.is_null()) {
+            for (const auto& [itemId, templimg] : item_templs) {
+                _templ_list.emplace_back(itemId, templimg);
+            }
+        }
+        else {
+            for (const auto& [_, itemId] : stage_drop.items()) {
+                auto& templimg = item_templs.at(itemId);
+                _templ_list.emplace_back(itemId, templimg);
+            }
         }
     }
 
