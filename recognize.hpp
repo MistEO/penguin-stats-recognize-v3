@@ -662,6 +662,15 @@ public:
         }
         return *this;
     }
+    Widget_Item& analyze_LMB()
+    {
+        if (!_img.empty()) {
+            _confidence = 1.0;
+            _itemId = "4001";
+            _get_quantity_LMB();
+        }
+        return *this;
+    }
     const dict report(bool debug = false)
     {
         dict _report = dict::object();
@@ -735,6 +744,16 @@ private:
         cv::Rect quantityrect = cv::Rect(
             0, round(height * _ITEM_QTY_Y_PROP),
             round(width * _ITEM_QTY_WIDTH_PROP),
+            round(height * _ITEM_QTY_HEIGHT_PROP));
+        cv::Mat quantityimg = _img(quantityrect);
+        _quantity.set_img(quantityimg);
+        _quantity.analyze();
+    }
+    void _get_quantity_LMB()
+    {
+        cv::Rect quantityrect = cv::Rect(
+            width * 0.4, round(height * 0.64),
+            round(width * 0.38),
             round(height * _ITEM_QTY_HEIGHT_PROP));
         cv::Mat quantityimg = _img(quantityrect);
         _quantity.set_img(quantityimg);

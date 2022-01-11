@@ -688,7 +688,18 @@ private:
                 || type == DROPTYPE_FIRST) {
                 break;
             } else if (type == DROPTYPE_LMB) {
-                continue;
+                int length = droptype_range.end - droptype_range.start;
+                std::string label = "drops." + std::to_string(_drop_list.size());
+                auto range = cv::Range(
+                    droptype_range.start,
+                    droptype_range.start + length);
+                auto dropimg = _img(cv::Range(0, baseline_h), range);
+                Widget_Item drop{ dropimg, item_diameter, label, this };
+                drop.analyze_LMB();
+                _drop_list.emplace_back(drop, type);
+                _drops_data.push_back(
+                    { { "dropType", "LMB" },
+                        { "quantity", drop.quantity() } });
             } else if (std::string label = "drops." + std::to_string(_drop_list.size());
                        type == DROPTYPE_FURNITURE) {
                 _drop_list.emplace_back(
@@ -711,7 +722,6 @@ private:
                     _drop_list.emplace_back(drop, type);
                     _drops_data.push_back(
                         { { "dropType", Droptype2Str[type] },
-                            { "itemId", drop.itemId() },
                             { "quantity", drop.quantity() } });
                 }
             }
