@@ -688,18 +688,29 @@ private:
                 || type == DROPTYPE_FIRST) {
                 break;
             } else if (type == DROPTYPE_LMB) {
-                int length = droptype_range.end - droptype_range.start;
-                std::string label = "drops." + std::to_string(_drop_list.size());
-                auto range = cv::Range(
-                    droptype_range.start,
-                    droptype_range.start + length);
-                auto dropimg = _img(cv::Range(0, baseline_h), range);
-                Widget_Item drop{ dropimg, item_diameter, label, this };
-                drop.analyze_LMB();
-                _drop_list.emplace_back(drop, type);
-                _drops_data.push_back(
-                    { { "dropType", "LMB" },
-                        { "quantity", drop.quantity() } });
+                int items_count = droptype.items_count();
+                // 这里 items_count 只可能是 0、1、2
+                // 0 不确定有没有这种情况，反正走不进循环，不管了
+                // 1 一定是“龙门币”
+                // 2 第一个一定是 EXP，第二个一定是“龙门币”
+                int length = (droptype_range.end - droptype_range.start) / items_count;
+                for (int i = 0; i < items_count; i++) {
+                    std::string label = "drops.LMB." + std::to_string(_drop_list.size());
+                    auto range = cv::Range(
+                        droptype_range.start + length * i,
+                        droptype_range.start + length * (i + 1));
+                    auto dropimg = _img(cv::Range(0, baseline_h), range);
+                    Widget_Item drop{ dropimg, item_diameter, label, this };
+                    std::string definite_item = "4001"; // LMB
+                    if (items_count == 2 && i == 0) {
+                        definite_item = "5001"; // EXP
+                    }
+                    drop.analyze(ItemTemplates(), definite_item);
+                    _drop_list.emplace_back(drop, type);
+                    _drops_data.push_back(
+                        { { "dropType", "LMB" },
+                            { "quantity", drop.quantity() } });
+                }
             } else if (std::string label = "drops." + std::to_string(_drop_list.size());
                        type == DROPTYPE_FURNITURE) {
                 _drop_list.emplace_back(

@@ -651,23 +651,20 @@ public:
         , _diameter(diameter)
     {
     }
-    Widget_Item& analyze(const ItemTemplates& templs = ItemTemplates())
+    Widget_Item& analyze(const ItemTemplates& templs = ItemTemplates(), std::string definite_item = std::string())
     {
         if (!_img.empty()) {
-            _get_item(templs);
+            if (definite_item.empty()) {
+                _get_item(templs);
+            }
+            else {
+                _confidence = 1.0;
+                _itemId = std::move(definite_item);
+            }
             _get_quantity();
         }
-        if (_confidence < 0.9) {
+        if (definite_item.empty() && _confidence < 0.9) {
             push_exception(ERROR, EXC_LOWCONF, report(true));
-        }
-        return *this;
-    }
-    Widget_Item& analyze_LMB()
-    {
-        if (!_img.empty()) {
-            _confidence = 1.0;
-            _itemId = "4001";
-            _get_quantity_LMB();
         }
         return *this;
     }
@@ -692,6 +689,7 @@ public:
 private:
     std::string _itemId = "";
     double _confidence = 0;
+    bool _cropped = false;
     Widget_ItemQuantity _quantity = { this };
     int _diameter = 0;
     std::vector<ItemConfidence> _confidence_list;
@@ -725,39 +723,42 @@ private:
             [](const ItemConfidence& val1, const ItemConfidence& val2) {
                 return val1.confidence > val2.confidence;
             });
-        std::string itemId = _confidence_list.front().itemId;
-        cv::Point topleft_new = _tmp_itemId2loc[itemId];
-        topleft_new.x *= coeff_multiinv;
-        topleft_new.y *= coeff_multiinv;
-        cv::Size size_new = cv::Size(
-            round(TEMPLATE_WIDTH * ((double)_diameter / TEMPLATE_DIAMETER)),
-            round(TEMPLATE_HEIGHT * ((double)_diameter / TEMPLATE_DIAMETER)));
-        _img = _img(cv::Rect(topleft_new, size_new));
-        self._relate(topleft_new);
         _confidence = _confidence_list.front().confidence;
         if (_confidence > 0.9) {
+            std::string itemId = _confidence_list.front().itemId;
+            cv::Point topleft_new = _tmp_itemId2loc[itemId];
+            topleft_new.x *= coeff_multiinv;
+            topleft_new.y *= coeff_multiinv;
+            cv::Size size_new = cv::Size(
+                round(TEMPLATE_WIDTH * ((double)_diameter / TEMPLATE_DIAMETER)),
+                round(TEMPLATE_HEIGHT * ((double)_diameter / TEMPLATE_DIAMETER)));
+            _img = _img(cv::Rect(topleft_new, size_new));
+            _cropped = true;
+            self._relate(topleft_new);
+
             _itemId = itemId;
         }
     }
     void _get_quantity()
     {
-        cv::Rect quantityrect = cv::Rect(
-            0, round(height * _ITEM_QTY_Y_PROP),
-            round(width * _ITEM_QTY_WIDTH_PROP),
-            round(height * _ITEM_QTY_HEIGHT_PROP));
-        cv::Mat quantityimg = _img(quantityrect);
-        _quantity.set_img(quantityimg);
-        _quantity.analyze();
-    }
-    void _get_quantity_LMB()
-    {
-        cv::Rect quantityrect = cv::Rect(
-            width * 0.4, round(height * 0.64),
-            round(width * 0.38),
-            round(height * _ITEM_QTY_HEIGHT_PROP));
-        cv::Mat quantityimg = _img(quantityrect);
-        _quantity.set_img(quantityimg);
-        _quantity.analyze();
+        if (_cropped) {
+            cv::Rect quantityrect = cv::Rect(
+                0, round(height * _ITEM_QTY_Y_PROP),
+                round(width * _ITEM_QTY_WIDTH_PROP),
+                round(height * _ITEM_QTY_HEIGHT_PROP));
+            cv::Mat quantityimg = _img(quantityrect);
+            _quantity.set_img(quantityimg);
+            _quantity.analyze();
+        }
+        else {
+            cv::Rect quantityrect = cv::Rect(
+                width * 0.4, round(height * 0.64),
+                round(width * 0.38),
+                round(height * _ITEM_QTY_HEIGHT_PROP));
+            cv::Mat quantityimg = _img(quantityrect);
+            _quantity.set_img(quantityimg);
+            _quantity.analyze();
+        }
     }
 };
 } // namespace penguin
