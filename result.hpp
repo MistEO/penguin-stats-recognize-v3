@@ -689,8 +689,10 @@ private:
                 break;
             } else if (type == DROPTYPE_LMB) {
                 int items_count = droptype.items_count();
+                if (items_count != 1 && items_count != 2) {
+                    continue;
+                }
                 // 这里 items_count 只可能是 0、1、2
-                // 0 不确定有没有这种情况，反正走不进循环，不管了
                 // 1 一定是“龙门币”
                 // 2 第一个一定是 EXP，第二个一定是“龙门币”
                 int length = (droptype_range.end - droptype_range.start) / items_count;

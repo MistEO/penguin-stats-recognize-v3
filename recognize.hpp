@@ -741,24 +741,27 @@ private:
     }
     void _get_quantity()
     {
+        cv::Rect quantityrect;
         if (_cropped) {
-            cv::Rect quantityrect = cv::Rect(
-                0, round(height * _ITEM_QTY_Y_PROP),
+            quantityrect = cv::Rect(
+                0, 
+                round(height * _ITEM_QTY_Y_PROP),
                 round(width * _ITEM_QTY_WIDTH_PROP),
                 round(height * _ITEM_QTY_HEIGHT_PROP));
-            cv::Mat quantityimg = _img(quantityrect);
-            _quantity.set_img(quantityimg);
-            _quantity.analyze();
         }
         else {
-            cv::Rect quantityrect = cv::Rect(
-                width * 0.4, round(height * 0.64),
+            quantityrect = cv::Rect(
+                round(width * 0.4), 
+                round(height * 0.64),
                 round(width * 0.38),
                 round(height * _ITEM_QTY_HEIGHT_PROP));
+        }
+        if (quantityrect.x + quantityrect.width <= _img.cols
+            && quantityrect.y + quantityrect.height <= _img.rows) {
             cv::Mat quantityimg = _img(quantityrect);
             _quantity.set_img(quantityimg);
-            _quantity.analyze();
         }
+        _quantity.analyze();
     }
 };
 } // namespace penguin
