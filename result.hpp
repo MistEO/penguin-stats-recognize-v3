@@ -171,10 +171,10 @@ public:
             _get_stage();
         }
         if (_stageId.empty()) {
-            push_exception(WARNING, EXC_NOTFOUND, report(true));
+            push_exception(ERROR, EXC_NOTFOUND, report(true));
         } else if (const auto& stage_index = resource.get<dict>("stage_index");
                    stage_index[_stage_code]["existence"] == false) {
-            push_exception(WARNING, EXC_ILLEGAL);
+            push_exception(ERROR, EXC_ILLEGAL);
         }
         return *this;
     }
